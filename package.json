@@ -1,0 +1,19 @@
+{
+  "name": "twiccord",
+  "version": "1.0.0",
+  "description": "A discord bot to send my tweets to my friends because they're too lazy to download twitter",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Adit Bala",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.0.1",
+    "dotenv": "^16.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.20.0"
+  }
+}
