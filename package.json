@@ -10,7 +10,7 @@
   "author": "Adit Bala",
   "license": "ISC",
   "dependencies": {
-    "discord.js": "^14.0.1",
+    "discord.js": "^13.9.0",
     "dotenv": "^16.0.1"
   },
   "devDependencies": {
