@@ -39,7 +39,7 @@ async def tweets(ctx, arg=5):
         title="ruminations from the mind of adit", color=0xe8d1e7)
     embed.set_author(name=ctx.author.display_name, url="https://twitter.com/existentialraj",
                      icon_url=ctx.author.avatar)
-    for i in range(arg):
+    for i in range(arg if arg < 10 else 9):
         tweet = my_tweets.data[i]
         date = tweet.created_at.replace(tzinfo=timezone.utc).astimezone(tz=None).date()
         time = tweet.created_at.replace(tzinfo=timezone.utc).astimezone(tz=None).time()
