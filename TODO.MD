@@ -8,5 +8,6 @@
 
 ### Done ✓
 
-- [x] Deploy bot to cloud :cloud:
-- [x] ?tweets <num> -> get up to 9 tweets
+- [x] Deploy bot to cloud :cloud:  
+- [x] ?tweets <num> -> get up to 9 tweets  
+
