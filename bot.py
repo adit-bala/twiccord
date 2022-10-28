@@ -35,7 +35,7 @@ async def num(ctx, arg=5):
     tweets_range = arg if 0 < arg < 100 else 50
     # fetch tweets
     my_tweets = client.get_users_tweets(id=os.getenv(
-        'USER_ID'), user_auth=True, tweet_fields="created_at", max_results=100, exclude="retweets")
+        'USER_ID'), user_auth=True, tweet_fields=["referenced_tweets", "conversation_id", "created_at"], max_results=100, exclude="retweets")
     # calculate the range between today and the last tweet fetched
     delta = datetime.today().date() - my_tweets.data[tweets_range-1].created_at.date()
     # init discord embed and link to twitter
@@ -48,6 +48,9 @@ async def num(ctx, arg=5):
     # iterate through tweets
     for i in range(tweets_range):
         tweet = my_tweets.data[i]
+        if tweet.referenced_tweets:
+            attach_conversation(embed, tweet)
+            continue
         # obtain date from tweet
         date = tweet.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).date()
@@ -84,6 +87,25 @@ async def today(ctx):
         embed.add_field(
             name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
     await ctx.send(embed=embed)
+
+def attach_conversation(embed, tweet):
+    conversation = []
+    curr = client.get_tweet(id=tweet.id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
+    while curr:
+        conversation.append((curr.data.created_at.replace(
+            tzinfo=timezone.utc).astimezone(tz=None).date(), curr.data.created_at.replace(
+            tzinfo=timezone.utc).astimezone(tz=None).time(), curr.data.text))
+        if not curr.includes:
+            break
+        curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
+    print(conversation)
+    for i in conversation[::-1]:
+        date = i[0]
+        time = i[1]
+        tweet = i[2]
+        embed.add_field(
+            name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
+
 
 
 bot.run(os.getenv('DISCORD_BOT'))
