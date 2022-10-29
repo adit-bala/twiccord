@@ -45,11 +45,18 @@ async def num(ctx, arg=5):
     embed.set_author(name=ctx.author.display_name, url=os.getenv(
         'TWITTER_LINK'),
                      icon_url=ctx.author.avatar)
+    # create set to keep track to avoid tweets that are present in a thread
+    seen_tweets = set()
     # iterate through tweets
     for i in range(tweets_range):
         tweet = my_tweets.data[i]
+        # check if tweet displayed in previous thread
+        if tweet.id in seen_tweets:
+            continue
+        # check if tweet is a reply to another tweet
         if tweet.referenced_tweets:
-            attach_conversation(embed, tweet)
+            # attach entire conversation from tweet
+            attach_conversation(embed, tweet, seen_tweets)
             continue
         # obtain date from tweet
         date = tweet.created_at.replace(
@@ -73,14 +80,24 @@ async def today(ctx):
     # fetch tweets
     my_tweets = client.get_users_tweets(id=os.getenv(
         'USER_ID'), user_auth=True, tweet_fields="created_at", exclude="retweets", start_time=today)
+    
     # print message if there are no tweets from today
     if not my_tweets.data:
         await ctx.send("No tweets yet today :(")
         return
     embed = discord.Embed(
         title="today's thoughts", color=0xe8d1e7)
+    # keep track of threaded tweets
+    seen_tweets = set()
     # iterate through tweets
     for tweet in my_tweets.data:
+        if tweet.id in seen_tweets:
+            continue
+        # check if tweet is a reply to another tweet
+        if tweet.referenced_tweets:
+            # attach entire conversation from tweet
+            attach_conversation(embed, tweet, seen_tweets)
+            continue
         # obtain time from tweet in PST timezone
         time = tweet.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).time()
@@ -88,24 +105,29 @@ async def today(ctx):
             name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
     await ctx.send(embed=embed)
 
-def attach_conversation(embed, tweet):
+def attach_conversation(embed, tweet, seen_tweets):
+    # list of tweets in thread
     conversation = []
+    # lookup current tweet
     curr = client.get_tweet(id=tweet.id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
+    # iterate through replies until reaching the root tweet (pseudo-linked list behavior)
     while curr:
+        # keep track of seen tweets
+        seen_tweets.add(curr.data.id)
+        # add tweet to thread list
         conversation.append((curr.data.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).date(), curr.data.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).time(), curr.data.text))
+        # break if at root tweet
         if not curr.includes:
             break
+        # find tweet replied to
         curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
-    print(conversation)
-    for i in conversation[::-1]:
-        date = i[0]
-        time = i[1]
-        tweet = i[2]
-        embed.add_field(
-            name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
-
-
+        # iterate through tweets starting from root
+        for i in conversation[::-1]:
+            date, time, tweet = i[0], i[1], i[2]
+            # represent threaded tweets as inline embeds
+            embed.add_field(
+                name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
 
 bot.run(os.getenv('DISCORD_BOT'))
