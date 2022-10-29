@@ -2,7 +2,7 @@ import os
 import tweepy
 import discord
 import calendar
-from discord.ext import commands
+from discord.ext import commands    
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 
@@ -123,11 +123,11 @@ def attach_conversation(embed, tweet, seen_tweets):
             break
         # find tweet replied to
         curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
-        # iterate through tweets starting from root
-        for i in conversation[::-1]:
-            date, time, tweet = i[0], i[1], i[2]
-            # represent threaded tweets as inline embeds
-            embed.add_field(
-                name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
+    # iterate through tweets starting from root
+    for i in conversation[::-1]:
+        date, time, tweet = i[0], i[1], i[2]
+        # represent threaded tweets as inline embeds
+        embed.add_field(
+            name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
 
 bot.run(os.getenv('DISCORD_BOT'))
