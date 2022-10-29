@@ -2,13 +2,16 @@
 
 - [ ] Add help command to see all available commands 
 - [ ] Add async command to get tweets from each day
-- [ ] Configure formatting for retweets, threaded tweets, and replies
+- [ ] Add month command to get tweets from a month
 - [ ] Update README.MD for installation instructions
+- [ ] Maintain consistent formatting of tweets within different commands
 
 
 ### Done ✓
 
 - [x] Deploy bot to cloud :cloud:  
-- [x] ?num <num> -> get up to 9 tweets  
+- [x] ?num <arg> -> get <arg> tweets 
 - [x] ?today -> get tweets from today
+- [x] Configure formatting for threaded tweets
+
 
