@@ -94,7 +94,7 @@ async def today(ctx):
         attach_today(embed, tweet)
     await ctx.send(embed=embed)
 
-def attach_month(embed, tweet):
+def attach_month(embed, tweet, inline=False):
     # obtain date from tweet
     date = tweet.created_at.replace(
         tzinfo=timezone.utc).astimezone(tz=None).date()
@@ -103,14 +103,14 @@ def attach_month(embed, tweet):
         tzinfo=timezone.utc).astimezone(tz=None).time()
     # format date and time within embed
     embed.add_field(
-        name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
+        name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=inline)
 
-def attach_today(embed, tweet):
+def attach_today(embed, tweet, inline=False):
     # obtain time from tweet in PST timezone
-        time = tweet.data.created_at.replace(
-            tzinfo=timezone.utc).astimezone(tz=None).time()
-        embed.add_field(
-            name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
+    time = tweet.data.created_at.replace(
+        tzinfo=timezone.utc).astimezone(tz=None).time()
+    embed.add_field(
+        name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=inline)
 
 def attach_conversation(embed, tweet, seen_tweets, month):
     attatch_format = attach_month if month else attach_today
@@ -131,6 +131,6 @@ def attach_conversation(embed, tweet, seen_tweets, month):
         curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
     # iterate through tweets starting from root
     for tweet in conversation[::-1]:
-        attatch_format(embed, tweet.data)
+        attatch_format(embed, tweet.data, inline=True)
 
 bot.run(os.getenv('DISCORD_BOT'))
