@@ -56,17 +56,9 @@ async def num(ctx, arg=5):
         # check if tweet is a reply to another tweet
         if tweet.referenced_tweets:
             # attach entire conversation from tweet
-            attach_conversation(embed, tweet, seen_tweets)
+            attach_conversation(embed, tweet, seen_tweets, month=True)
             continue
-        # obtain date from tweet
-        date = tweet.created_at.replace(
-            tzinfo=timezone.utc).astimezone(tz=None).date()
-        # obtain time from tweet in PST timezone
-        time = tweet.created_at.replace(
-            tzinfo=timezone.utc).astimezone(tz=None).time()
-        # format date and time within embed
-        embed.add_field(
-            name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
+        attach_month(embed, tweet)
     # roast my friends for making me create this bot (jk, I made this for my friends)
     embed.set_footer(
         text=f"{ctx.author.display_name} is too lazy to download twitter")
@@ -96,16 +88,32 @@ async def today(ctx):
         # check if tweet is a reply to another tweet
         if tweet.referenced_tweets:
             # attach entire conversation from tweet
-            attach_conversation(embed, tweet, seen_tweets)
+            attach_conversation(embed, tweet, seen_tweets, month=False)
             continue
         # obtain time from tweet in PST timezone
-        time = tweet.created_at.replace(
+        attach_today(embed, tweet)
+    await ctx.send(embed=embed)
+
+def attach_month(embed, tweet):
+    # obtain date from tweet
+    date = tweet.created_at.replace(
+        tzinfo=timezone.utc).astimezone(tz=None).date()
+    # obtain time from tweet in PST timezone
+    time = tweet.created_at.replace(
+        tzinfo=timezone.utc).astimezone(tz=None).time()
+    # format date and time within embed
+    embed.add_field(
+        name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
+
+def attach_today(embed, tweet):
+    # obtain time from tweet in PST timezone
+        time = tweet.data.created_at.replace(
             tzinfo=timezone.utc).astimezone(tz=None).time()
         embed.add_field(
             name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=False)
-    await ctx.send(embed=embed)
 
-def attach_conversation(embed, tweet, seen_tweets):
+def attach_conversation(embed, tweet, seen_tweets, month):
+    attatch_format = attach_month if month else attach_today
     # list of tweets in thread
     conversation = []
     # lookup current tweet
@@ -115,19 +123,14 @@ def attach_conversation(embed, tweet, seen_tweets):
         # keep track of seen tweets
         seen_tweets.add(curr.data.id)
         # add tweet to thread list
-        conversation.append((curr.data.created_at.replace(
-            tzinfo=timezone.utc).astimezone(tz=None).date(), curr.data.created_at.replace(
-            tzinfo=timezone.utc).astimezone(tz=None).time(), curr.data.text))
+        conversation.append(curr)
         # break if at root tweet
         if not curr.includes:
             break
         # find tweet replied to
         curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
     # iterate through tweets starting from root
-    for i in conversation[::-1]:
-        date, time, tweet = i[0], i[1], i[2]
-        # represent threaded tweets as inline embeds
-        embed.add_field(
-            name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet, inline=True)
+    for tweet in conversation[::-1]:
+        attatch_format(embed, tweet.data)
 
 bot.run(os.getenv('DISCORD_BOT'))
