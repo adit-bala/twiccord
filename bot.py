@@ -2,7 +2,8 @@ import os
 import tweepy
 import discord
 import calendar
-from discord.ext import commands    
+import asyncio
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 
@@ -67,6 +68,9 @@ async def num(ctx, arg=5):
 # get tweets from today
 @bot.command()
 async def today(ctx):
+    await fetch_today_tweets(ctx)
+
+async def fetch_today_tweets(ctx, periodic=False):
     # get tweets from today and convert them to twitter's sus format
     today = datetime.today().isoformat()[:-7] + "Z"
     # fetch tweets
@@ -75,7 +79,7 @@ async def today(ctx):
     
     # print message if there are no tweets from today
     if not my_tweets.data:
-        await ctx.send("No tweets yet today :(")
+        await ctx.send(f"No tweets yet today :(")
         return
     embed = discord.Embed(
         title="today's thoughts", color=0xe8d1e7)
@@ -92,6 +96,9 @@ async def today(ctx):
             continue
         # obtain time from tweet in PST timezone
         attach_today(embed, tweet)
+    if periodic:
+        embed.set_footer(text="?help")
+        await ctx.send(f"Here you go mf {os.getenv('FRIEND_ID')}")
     await ctx.send(embed=embed)
 
 def attach_month(embed, tweet, inline=False):
@@ -107,7 +114,7 @@ def attach_month(embed, tweet, inline=False):
 
 def attach_today(embed, tweet, inline=False):
     # obtain time from tweet in PST timezone
-    time = tweet.data.created_at.replace(
+    time = tweet.created_at.replace(
         tzinfo=timezone.utc).astimezone(tz=None).time()
     embed.add_field(
         name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=inline)
@@ -133,4 +140,16 @@ def attach_conversation(embed, tweet, seen_tweets, month):
     for tweet in conversation[::-1]:
         attatch_format(embed, tweet.data, inline=True)
 
-bot.run(os.getenv('DISCORD_BOT'))
+@tasks.loop(hours=24)
+async def my_task():
+    await bot.wait_until_ready()
+    channel = bot.get_channel(1000514894334017607)
+    await fetch_today_tweets(channel, periodic=True)
+
+
+async def main():
+    async with bot:
+        my_task.start()
+        await bot.start(os.getenv('DISCORD_BOT'))
+
+asyncio.run(main())
