@@ -79,7 +79,7 @@ async def fetch_today_tweets(ctx, periodic=False):
     
     # print message if there are no tweets from today
     if not my_tweets.data:
-        await ctx.send(f"No tweets yet today :(")
+        await ctx.send("No tweets yet today :(")
         return
     embed = discord.Embed(
         title="today's thoughts", color=0xe8d1e7)
