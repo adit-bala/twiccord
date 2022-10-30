@@ -18,7 +18,7 @@ git clone https://github.com/TannerGabriel/discord-bot.git
 cd discord-bot/
 
 # Install the dependencies
-pip install -r requirements.txt
+[fix requirements.txt]
 
 # Create .env file
 touch .env
