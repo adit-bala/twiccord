@@ -38,14 +38,15 @@ async def num(ctx, arg=5):
     my_tweets = client.get_users_tweets(id=os.getenv(
         'USER_ID'), user_auth=True, tweet_fields=["referenced_tweets", "conversation_id", "created_at"], max_results=100, exclude="retweets")
     # calculate the range between today and the last tweet fetched
-    delta = datetime.today().date() - my_tweets.data[tweets_range-1].created_at.date()
+    delta = datetime.today().date() - \
+        my_tweets.data[tweets_range-1].created_at.date()
     # init discord embed and link to twitter
     embed = discord.Embed(
         title=f"ruminations from the past {delta.days} days", color=0xe8d1e7)
     # show the user who requested tweets as the author
     embed.set_author(name=ctx.author.display_name, url=os.getenv(
         'TWITTER_LINK'),
-                     icon_url=ctx.author.avatar)
+        icon_url=ctx.author.avatar)
     # create set to keep track to avoid tweets that are present in a thread
     seen_tweets = set()
     # iterate through tweets
@@ -76,13 +77,14 @@ async def fetch_today_tweets(ctx, periodic=False):
     # fetch tweets
     my_tweets = client.get_users_tweets(id=os.getenv(
         'USER_ID'), user_auth=True, tweet_fields="created_at", exclude="retweets", start_time=today)
-    
+
     # print message if there are no tweets from today
     if not my_tweets.data:
         await ctx.send("No tweets yet today :(")
         return
+    title = "today's thoughts"
     embed = discord.Embed(
-        title="today's thoughts", color=0xe8d1e7)
+        title=("[automated] " + title if periodic else title), color=0xe8d1e7)
     # keep track of threaded tweets
     seen_tweets = set()
     # iterate through tweets
@@ -97,9 +99,11 @@ async def fetch_today_tweets(ctx, periodic=False):
         # obtain time from tweet in PST timezone
         attach_today(embed, tweet)
     if periodic:
-        embed.set_footer(text="?help")
-        await ctx.send(f"Here you go mf {os.getenv('FRIEND_ID')}")
+        allowed_mentions = discord.AllowedMentions(everyone=True)
+        embed.set_footer(text="?help to see more commands")
+        await ctx.send("DAILY UPDATE HERE @everyone", allowed_mentions=allowed_mentions)
     await ctx.send(embed=embed)
+
 
 def attach_month(embed, tweet, inline=False):
     # obtain date from tweet
@@ -112,6 +116,7 @@ def attach_month(embed, tweet, inline=False):
     embed.add_field(
         name=f"{calendar.month_name[date.month]} {date.day}, {date.year} at {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=inline)
 
+
 def attach_today(embed, tweet, inline=False):
     # obtain time from tweet in PST timezone
     time = tweet.created_at.replace(
@@ -119,12 +124,14 @@ def attach_today(embed, tweet, inline=False):
     embed.add_field(
         name=f"@ {datetime.strptime(str(time)[:-3],'%H:%M').strftime('%I:%M %p')}", value=tweet.text, inline=inline)
 
+
 def attach_conversation(embed, tweet, seen_tweets, month):
     attatch_format = attach_month if month else attach_today
     # list of tweets in thread
     conversation = []
     # lookup current tweet
-    curr = client.get_tweet(id=tweet.id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
+    curr = client.get_tweet(id=tweet.id, user_auth=True, tweet_fields=[
+                            "referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
     # iterate through replies until reaching the root tweet (pseudo-linked list behavior)
     while curr:
         # keep track of seen tweets
@@ -135,10 +142,12 @@ def attach_conversation(embed, tweet, seen_tweets, month):
         if not curr.includes:
             break
         # find tweet replied to
-        curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=["referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
+        curr = client.get_tweet(id=curr.includes['tweets'][0].id, user_auth=True, tweet_fields=[
+                                "referenced_tweets", "created_at"], expansions=["referenced_tweets.id"])
     # iterate through tweets starting from root
     for tweet in conversation[::-1]:
         attatch_format(embed, tweet.data, inline=True)
+
 
 @tasks.loop(hours=24)
 async def my_task():
