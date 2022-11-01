@@ -1,8 +1,3 @@
-### Todo
-
-- [ ] Add help command to see all available commands 
-- [ ] Add month command to get tweets from a month
-
 ### Done ✓
 
 - [x] Deploy bot to cloud :cloud:  
