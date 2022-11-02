@@ -149,7 +149,7 @@ def attach_conversation(embed, tweet, seen_tweets, month):
         attatch_format(embed, tweet.data, inline=True)
 
 
-@tasks.loop(hours=24)
+@tasks.loop(hours=12)
 async def my_task():
     await bot.wait_until_ready()
     channel = bot.get_channel(1000514894334017607)
