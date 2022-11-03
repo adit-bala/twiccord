@@ -68,7 +68,7 @@ The following is one option to deploy the bot that's easy and free.
 
 1. Create an account in [Google Cloud](https://cloud.google.com/)
 2. Go to your [Console](https://console.cloud.google.com/) and then navigate to [Compute Engine](https://console.cloud.google.com/compute/)
-3. Create a new VM instance and select the following configurations (Region: <insert-region>, Series: N1,Machine type: f1-micro)
+3. Create a new VM instance and select the following configurations (Region: `<insert-region>`, Series: `N1`, Machine type: `f1-micro`)
 4. Once you've created your instance, connect to is via `SSH`
 5. We now need to install a couple of libraries required for our project to run
 ```python
