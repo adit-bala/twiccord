@@ -64,4 +64,28 @@ This bot is very minimal, so there are a few quirks that you may want to know ab
 
 ## Deploying the bot
 
-[Add Google Cloud Instructions]
+The following is one option to deploy the bot that's easy and free.
+
+1. Create an account in [Google Cloud](https://cloud.google.com/)
+2. Go to your [Console](https://console.cloud.google.com/) and then navigate to [Compute Engine](https://console.cloud.google.com/compute/)
+3. Create a new VM instance and select the following configurations (Region: <insert-region>, Series: N1,Machine type: f1-micro)
+4. Once you've created your instance, connect to is via `SSH`
+5. We now need to install a couple of libraries required for our project to run
+```python
+sudo apt update
+sudo apt update python3
+sudo apt install python3-pip
+pip3 install discord.py
+pip3 install tweepy
+pip3 install python
+pip3 install python-dotenv
+```
+6. We can now upload the files required to run the bot into our VM instance. Click on upload files and upload both `bot.py` and `.env`
+7. Our last step is to run the bot as a background process indefinitely, which we can do using `tmux`
+8. First, install `tmux` with `sudo apt-get install tmux`
+9. Our last step is to create a `tmux` session and run the bot!
+```linux
+tmux
+python3 bot.py
+```
+
