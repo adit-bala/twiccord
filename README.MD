@@ -89,3 +89,6 @@ tmux
 python3 bot.py
 ```
 
+## Credits
+
+README.MD -> Installation/Deployment Instructions adapted from [TannerGabriel](https://github.com/TannerGabriel/discord-bot) and [Max Saltonstall with David Stanke](https://cloud.google.com/blog/topics/developers-practitioners/build-and-run-discord-bot-top-google-cloud)
