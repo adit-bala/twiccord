@@ -5,7 +5,7 @@ import calendar
 import asyncio
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 
 load_dotenv()
@@ -73,7 +73,7 @@ async def today(ctx):
 
 async def fetch_today_tweets(ctx, periodic=False):
     # get tweets from today and convert them to twitter's sus format
-    today = datetime.today().isoformat()[:-7] + "Z"
+    today = twitter_time(datetime.today() - timedelta(hours=12)) if periodic else twitter_time(datetime.today())
     # fetch tweets
     my_tweets = client.get_users_tweets(id=os.getenv(
         'USER_ID'), user_auth=True, tweet_fields="created_at", exclude="retweets", start_time=today)
@@ -147,6 +147,9 @@ def attach_conversation(embed, tweet, seen_tweets, month):
     # iterate through tweets starting from root
     for tweet in conversation[::-1]:
         attatch_format(embed, tweet.data, inline=True)
+
+def twitter_time(time):
+    return time.isoformat()[:-7] + "Z"
 
 
 @tasks.loop(hours=12)
