@@ -32,8 +32,8 @@ async def on_ready():
 # get <arg> tweets
 @bot.command()
 async def num(ctx, arg=5):
-    # ensure that range falls within the past 100 tweets, else default to 50
-    tweets_range = arg if 0 < arg < 100 else 50
+    # ensure that range falls within the past 60 tweets, else default to 50
+    tweets_range = arg if 0 < arg < 60 else 50
     # fetch tweets
     my_tweets = client.get_users_tweets(id=os.getenv(
         'USER_ID'), user_auth=True, tweet_fields=["referenced_tweets", "conversation_id", "created_at"], max_results=100, exclude="retweets")
@@ -80,11 +80,10 @@ async def fetch_today_tweets(ctx, periodic=False):
 
     # print message if there are no tweets from today
     if not my_tweets.data:
-        await ctx.send("No tweets yet today :(")
+        await ctx.send("No tweets yet today :'(")
         return
-    title = "today's thoughts"
     embed = discord.Embed(
-        title=("[automated] " + title if periodic else title), color=0xe8d1e7)
+        title=("today's thoughts"), color=0xe8d1e7)
     # keep track of threaded tweets
     seen_tweets = set()
     # iterate through tweets
@@ -100,8 +99,11 @@ async def fetch_today_tweets(ctx, periodic=False):
         attach_today(embed, tweet)
     if periodic:
         allowed_mentions = discord.AllowedMentions(everyone=True)
-        embed.set_footer(text="?help to see more commands")
-        await ctx.send("DAILY UPDATE HERE @everyone", allowed_mentions=allowed_mentions)
+        embed.set_footer(text="[automated]")
+        curr = datetime.today()
+        count = "1/2" if "AM" in curr.strftime("%p") else "2/2"
+        date = f"{calendar.month_name[curr.month]} {curr.day}, {curr.year}"
+        await ctx.send(f"Update **{count}** for {date}", allowed_mentions=allowed_mentions)
     await ctx.send(embed=embed)
 
 
